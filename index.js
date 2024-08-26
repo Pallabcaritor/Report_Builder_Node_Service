@@ -280,7 +280,7 @@ app.get('/getfilter2', (req, res, next) => {
 		{
 			if (attributeValue.toUpperCase() == 'CUSTOMER')
 			{				
-				query = (`SELECT distinct tf.franchise_name FROM t_franchise tf, t_order tod  where tf.id = tod.franchise_id and (tod.season_id in ({seasonValue})) ORDER BY tf.franchise_name`).replace('{seasonValue}')
+				query = (`SELECT distinct tf.franchise_name FROM t_franchise tf, t_order tod  where tf.id = tod.franchise_id and (tod.season_id in ({seasonValue})) ORDER BY tf.franchise_name`).replace('{seasonValue}',seasonValue)
 			}
 	
 			else if (attributeValue.toUpperCase() == 'CUSTOMER_STORE')
