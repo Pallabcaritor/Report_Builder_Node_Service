@@ -1,0 +1,18 @@
+module.exports = Object.freeze({
+    SEASON_QUERY: "Select Id,Name from t_season where status=1 order by Id ASC",
+    ORDER_WINDOW_QUERY: "select id,name from t_order_window where status=1 order by id ASC",
+    ORDER_WINDOW_IN_QUERY: `select id,name from t_order_window where status=1 and season_id in ({seasonValue}) order by id ASC`,
+    ORDER_WINDOW_LABEL_QUERY1: "select distinct order_window_label from t_order_window where status=1",
+    ORDER_WINDOW_LABEL_QUERY2: `select distinct order_window_label from t_order_window where status=1 and season_id in ({seasonValue}) and id in ({owindowValue})`,
+    ORDER_WINDOW_LABEL_QUERY3: `select distinct order_window_label from t_order_window where status=1 and season_id in ({seasonValue})`,
+    ORDER_WINDOW_LABEL_QUERY4: `select distinct order_window_label from t_order_window where status=1 and id in ({owindowValue})`,
+    FILTER2_CUSTOMER: `SELECT distinct tf.franchise_name FROM t_franchise tf, t_order tod,t_order_window tow  where tf.id = tod.franchise_id  and tow.id=tod.order_window_id and ((tod.order_window_id in ({orderwindowValue})) or (tod.id in ({orderwindowValue})) or (tod.season_id in ({seasonValue})) or (tow.order_window_label in ({windowlabelValue}))) ORDER BY tf.franchise_name`,
+    FILTER2_CUSTOMER_STORE: `SELECT distinct c.store_name as store FROM public.t_order a, t_order_window b , t_franchise_store c where b.id = a.order_window_id and c.id=a.store_id and ((a.order_window_id in ({orderwindowValue})) or (b.id in ({orderwindowValue})) or (b.season_id in ({seasonValue})) or (b.order_window_label in ({windowlabelValue}))) ORDER BY c.store_name`,
+    FILTER2_CUSTOMER_STORE2: `SELECT distinct b.store_name as store FROM public.t_order a, t_franchise_store b where b.franchise_id = a.franchise_id and a.season_id in ({seasonValue}) ORDER BY b.store_name`,
+    FILTER2_CUSTOMER_STORE3: `SELECT distinct c.store_name as store FROM public.t_order a, t_order_window b , t_franchise_store c where b.id = a.order_window_id and c.id=a.store_id and ((a.order_window_id in ({orderwindowValue})) or (b.id in ({orderwindowValue})) or (b.season_id in ({seasonValue}))) ORDER BY c.store_name`,
+    FILTER2_SUBSIDIARY : `select distinct name from m_subsidiaries order by name`,
+    FILTER2_CUSTOMER2 : `SELECT distinct tf.franchise_name FROM t_franchise tf, t_order tod,t_order_window tow  where tf.id = tod.franchise_id  and tow.id=tod.order_window_id and ((tod.order_window_id in ({orderwindowValue}))or (tod.id in ({orderwindowValue})) or (tod.season_id in ({seasonValue}))) ORDER BY tf.franchise_name`,
+    FILTER2_GEN : `SELECT distinct a.{attributeValue} FROM public.t_footware_map_items a, t_order_window b where b.id = a.order_window_id and ((a.order_window_id in ({orderwindowValue})) or (b.id in ({orderwindowValue})) or (b.season_id in ({seasonValue})) or (b.order_window_label in ({windowlabelValue}))) ORDER BY a.{attributeValue}`,
+    FILTER2_GEN2: `SELECT distinct a.{attributeValue} FROM public.t_footware_map_items a, t_order_window b where b.id = a.order_window_id and b.season_id in ({seasonValue}) ORDER BY a.{attributeValue}`,
+    FILTER2_GEN3: `SELECT distinct a.{attributeValue} FROM public.t_footware_map_items a, t_order_window b where b.id = a.order_window_id and ((a.order_window_id in ({orderwindowValue})) or (b.id in ({orderwindowValue})) or (b.season_id in ({seasonValue}))) ORDER BY a.{attributeValue}`
+});
