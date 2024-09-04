@@ -1,5 +1,4 @@
 // Entry Point of the API Server 
-
 const express = require('express');
 
 /* Creates an Express application. 
@@ -29,6 +28,28 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }));
 
 
+/* Cronjob for deleting the files created in getdata API
+*/
+
+const schedule = require('node-schedule')
+
+schedule.scheduleJob('*/2 * * * *', () => {
+	const axios = require('axios');
+
+	const url = 'http://localhost:3000/deletefiles';
+	const data = {};
+
+	axios.patch(url, data)
+	.then(response => {
+		console.log('Response------>>>>:', response.data);
+	})
+	.catch(error => {
+		console.error('Error:', error);
+	});
+
+	console.log("File DELETED...........")
+})
+
 pool.connect((err, client, release) => {
 	if (err) {
 		return console.error(
@@ -43,6 +64,7 @@ pool.connect((err, client, release) => {
 		console.log("Connected to Database !")
 	})
 })
+
 
 app.get('/getseasons', (req, res, next) => {    
     // getting query from queries
@@ -541,15 +563,104 @@ app.post('/getdata', async(req, res) => {
 	console.log(`${q}`)
 	console.log("-----------------------------------------------------------------------------------------------")
 
-	// pool.query(q)
-	// .then(testData => {
-	// 	res.send(testData.rows);
-	// })
-
 	const result = await pool.query(q)
-	// const jsonString = JSON.stringify(result.rows);
-	res.json(result.rows)
+	jsonData = result.rows
+	var resultInfo = jsonData.map( function(jsonData) {
+		{
+			var rest = { "Country Name": jsonData.country_name,
+				          "Customer Name": jsonData.customer,
+						  "Season Name": jsonData.season,
+						  "Order Window Name": jsonData.order_window,
+						  "Store Name": jsonData.store_name,
+						  "Subsidiary Name": jsonData.subsidiary,
+						  "Brand": jsonData.brand,
+						  "Product Category": jsonData.product_category,
+						  "Distribution Tier": jsonData.global_distribution_tier,
+						  "Sales Season": jsonData.sale_season,
+						  "Category1": jsonData.category1,
+						  "Item Code": jsonData.item_code,
+						  "Item Name": jsonData.item_name,
+						  "Gender": jsonData.gender,
+						  "Remarks": jsonData.remarks,
+						  "Launched Month": jsonData.og_launch_month,
+						  "Quantity": jsonData.quantity,
+						  "SGD Val": jsonData.sgd_val,
+						  "USD Val": jsonData.usd_val,
+						}	
+		return rest;
+		}});
+	
+	const randomChars = Math.random().toString(36).substring(2,9).toUpperCase();
+	const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const timestamp = `${day}${month}${year}${hours}${minutes}${seconds}`
+
+    var filename = `ASICS${timestamp}-${randomChars}`
+	const fs = require("fs")
+	const path = require('path');
+    const directory = path.join(__dirname,'files');
+	if (!fs.existsSync(directory)){
+		fs.mkdirSync(directory);
+	}
+	
+	const JSONToFile = (obj, filename) =>
+	fs.writeFileSync(`${filename}.json`, JSON.stringify(obj, null, 2));
+	JSONToFile(resultInfo, directory + "/"+ filename);
+	res.json({"response_id" : filename, "data" : resultInfo})
 });
+
+app.get('/getselecteddata', (req, res) => {
+    try {
+        const responseId = req.query.response_id;
+        const columns = req.query.columns;
+        const columnsList = columns.split(",");
+        // console.log(columnsList);
+        const filename = `./files/${responseId}.json`;
+        var fs = require('fs');
+        if (fs.existsSync(filename)) {            
+
+		    var asics_data = require(filename)
+			
+			const selectColumns = (data, columns) => {
+				return data.map(item => {
+					const selected = {};
+					columns.forEach(col => {
+						if (item.hasOwnProperty(col)) {
+							selected[col] = item[col];
+						}
+					});
+					return selected;
+				});
+			};
+			const slicedData = selectColumns(asics_data, columnsList);
+            res.status(200).json(slicedData);
+        } else {
+            res.status(400).json("File Id Does Not Exists!, Try different Response ID");
+        }
+    } catch (e) {
+		console.error(e, e.stack);
+        res.status(400).json("Something went wrong!");
+    }
+});
+
+app.patch('/deletefiles', (req, res, next) => {    
+    const fs = require('fs'); 	
+	var dir = 'files'
+	if (fs.existsSync(dir)) {
+		fs.rmSync(dir, {recursive: true})
+		res.status(200).send("Folder Deleted Successfully");
+	  }
+	else{
+		res.status(200).json("Files does not Exists or Some Error Occured");
+	}
+	
+})
+
 
 // Require the Routes API 
 // Create a Server and run it on the port 3000
