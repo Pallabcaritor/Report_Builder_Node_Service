@@ -33,7 +33,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 const schedule = require('node-schedule')
 
-schedule.scheduleJob('*/2 * * * *', () => {
+schedule.scheduleJob('*/30 * * * *', () => {
 	const axios = require('axios');
 
 	const url = 'http://localhost:3000/deletefiles';
